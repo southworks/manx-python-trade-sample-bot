@@ -14,13 +14,6 @@ git clone https://github.com/southworks/manx-python-trade-sample-bot.git
 - Alternatively to the last command, you can set the file in an environment variable with `set FLASK_APP=app.py` in windows (`export FLASK_APP=app.py` in mac/linux) and then run `flask run --host=127.0.0.1 --port=3978`
 
 
-### Visual studio code
-- Activate your desired virtual environment
-- Open `botbuilder-python\samples\45.state-management` folder
-- Bring up a terminal, navigate to `botbuilder-python\samples\05.multi-turn-prompt` folder
-- In the terminal, type `pip install -r requirements.txt`
-- In the terminal, type `python app.py`
-
 ## Testing the bot using Bot Framework Emulator
 [Microsoft Bot Framework Emulator](https://github.com/microsoft/botframework-emulator) is a desktop application that allows bot developers to test and debug their bots on localhost or running remotely through a tunnel.
 
