@@ -7,7 +7,7 @@ This bot has been created using [Bot Framework](https://dev.botframework.com), i
 ## Running the sample
 - Clone the repository
 ```bash
-git clone https://github.com/Microsoft/botbuilder-python.git
+git clone https://github.com/southworks/manx-python-trade-sample-bot.git
 ```
 - Run `pip install -r requirements.txt` to install all dependencies
 - Run `python app.py`
