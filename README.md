@@ -1,4 +1,4 @@
-# multi-turn prompt
+# Trade Bot: Simple demo of a Bot made with Python, that uses Recognizers-Text 
 
 Bot Framework v4 welcome users bot sample
 
