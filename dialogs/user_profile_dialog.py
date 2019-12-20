@@ -36,6 +36,31 @@ from data_models import UserProfile
 
 import recognizers_suite
 
+from botbuilder.core import CardFactory, MessageFactory
+from botbuilder.dialogs import (
+    ComponentDialog,
+    WaterfallDialog,
+    WaterfallStepContext,
+)
+from botbuilder.dialogs.prompts import TextPrompt, PromptOptions
+from botbuilder.schema import (
+    ActionTypes,
+    Attachment,
+    AnimationCard,
+    AudioCard,
+    HeroCard,
+    VideoCard,
+    ReceiptCard,
+    SigninCard,
+    ThumbnailCard,
+    MediaUrl,
+    CardAction,
+    CardImage,
+    ThumbnailUrl,
+    Fact,
+    ReceiptItem,
+)
+
 DEFAULT_CULTURE = Culture.English
 
 
@@ -335,6 +360,45 @@ class UserProfileDialog(ComponentDialog):
         )
 
         return await step_context.end_dialog()
+
+    def create_receipt_card(self) -> Attachment:
+        card = ReceiptCard(
+            title="Johny Rico",
+            facts=[
+                Fact(key="Order Number", value="1234"),
+                Fact(key="Payment Method", value="VISA 5555-****"),
+            ],
+            items=[
+                ReceiptItem(
+                    title="Data Transfer",
+                    price="$38.45",
+                    quantity="368",
+                    image=CardImage(
+                        url="https://github.com/amido/azure-vector-icons/raw/master/"
+                        "renders/traffic-manager.png"
+                    ),
+                ),
+                ReceiptItem(
+                    title="App Service",
+                    price="$45.00",
+                    quantity="720",
+                    image=CardImage(
+                        url="https://github.com/amido/azure-vector-icons/raw/master/"
+                        "renders/cloud-service.png"
+                    ),
+                ),
+            ],
+            tax="$7.50",
+            total="90.95",
+            buttons=[
+                CardAction(
+                    type=ActionTypes.open_url,
+                    title="More Information",
+                    value="https://azure.microsoft.com/en-us/pricing/details/bot-service/",
+                )
+            ],
+        )
+        return CardFactory.receipt_card(card)
 
 
 def parse_all(user_input: str, culture: str) -> List[List[ModelResult]]:
