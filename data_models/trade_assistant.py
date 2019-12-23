@@ -154,7 +154,7 @@ class Portfolio:
         """ Create a new Portfolio """
         self.stocks_owned = list()
         # TODO: Create a parametric constructor, for fast population.
-
+        # TODO: Even better, read these portfolio data from a file
         g: Holding = Holding()
         g.stock.market = Market.NASDAQ[0]
         g.stock.ticker = "GOOG"
@@ -229,13 +229,13 @@ class Sets:
 
     @staticmethod
     def intersection(lst1, lst2):
+        """ get intersection of two lists """
         lst3 = [value for value in lst1 if value in lst2]
         return lst3
 
-    """ get difference of two lists """
-
     @staticmethod
     def diff(li1, li2):
+        """ get difference of two lists """
         return list(set(li1) - set(li2))
 
 
