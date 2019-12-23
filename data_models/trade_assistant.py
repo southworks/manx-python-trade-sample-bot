@@ -155,6 +155,7 @@ class Portfolio:
         self.stocks_owned = list()
         # TODO: Create a parametric constructor, for fast population.
         # TODO: Even better, read these portfolio data from a file
+        # --------------
         g: Holding = Holding()
         g.stock.market = Market.NASDAQ[0]
         g.stock.ticker = "GOOG"
@@ -198,6 +199,41 @@ class Portfolio:
             result += holding.to_string() + Constants.crlf
 
         return result
+
+    def write_json_data_to_file(self):
+        import json
+
+        data = {}
+        data['people'] = []
+        data['people'].append({
+            'name': 'Scott',
+            'website': 'stackabuse.com',
+            'from': 'Nebraska'
+        })
+        data['people'].append({
+            'name': 'Larry',
+            'website': 'google.com',
+            'from': 'Michigan'
+        })
+        data['people'].append({
+            'name': 'Tim',
+            'website': 'apple.com',
+            'from': 'Alabama'
+        })
+
+        with open('data/data.txt', 'w') as outfile:
+            json.dump(data, outfile)
+
+    def read_json_data_from_file(self):
+        import json
+
+        with open('data.txt') as json_file:
+            data = json.load(json_file)
+            for p in data['people']:
+                print('Name: ' + p['name'])
+                print('Website: ' + p['website'])
+                print('From: ' + p['from'])
+                print('')
 
     @staticmethod
     def print_header(self):

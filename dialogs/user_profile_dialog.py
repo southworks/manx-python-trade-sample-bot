@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-from data_models import TradeAssistant
-
 from botbuilder.dialogs import (
     ComponentDialog,
     WaterfallDialog,
@@ -55,7 +53,7 @@ from botbuilder.schema import (
     ReceiptItem,
 )
 
-from data_models.TradeAssistant import Portfolio, Constants, Operation, Broker, Holding, BuyOperation, SellOperation, \
+from data_models.trade_assistant import Portfolio, Constants, Operation, Broker, Holding, BuyOperation, SellOperation, \
     Sets
 
 DEFAULT_CULTURE = Culture.English
@@ -214,6 +212,10 @@ class UserProfileDialog(ComponentDialog):
 
         # this contains the whole collection of stocks of the user.
         portfolio = Portfolio()
+
+        # test write file: ok
+        # portfolio.write_json_data_to_file()
+        # portfolio.read_json_data_from_file()
 
         # this represents a position taken with an investment instrument.
         # usually, there are many open at the same time.
