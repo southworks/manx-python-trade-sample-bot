@@ -211,6 +211,7 @@ class UserProfileDialog(ComponentDialog):
                 list_number.append(value)
 
         # this contains the whole collection of stocks of the user.
+        # in the init method, it should populate the holdings using the data text file
         portfolio = Portfolio()
 
         # test write file: ok

@@ -145,6 +145,9 @@ class Broker:
         pass
 
 
+data_file_url = "data/data.txt"
+
+
 class Portfolio:
     """ Helps to admin the stocks holdings owned by the user """
     stocks_owned: List[Holding]
@@ -153,38 +156,7 @@ class Portfolio:
     def __init__(self):
         """ Create a new Portfolio """
         self.stocks_owned = list()
-        # TODO: Create a parametric constructor, for fast population.
-        # TODO: Even better, read these portfolio data from a file
-        # --------------
-        g: Holding = Holding()
-        g.stock.market = Market.NASDAQ[0]
-        g.stock.ticker = "GOOG"
-        g.stock.company = "Google, Inc."
-        g.average_price = 1210
-        g.last_price = 1359
-        g.quantity = 30
-        g.quantity_compromised = 0
-        self.stocks_owned.append(g)
-
-        g: Holding = Holding()
-        g.stock.ticker = "NFLX"
-        g.stock.market = Market.NASDAQ[0]
-        g.stock.company = "Netflix"
-        g.average_price = 262
-        g.last_price = 301
-        g.quantity = 20
-        g.quantity_compromised = 0
-        self.stocks_owned.append(g)
-
-        g: Holding = Holding()
-        g.stock.ticker = "FB"
-        g.stock.market = Market.NASDAQ[0]
-        g.stock.company = "Facebook, Inc."
-        g.average_price = 210.5
-        g.last_price = 198.80
-        g.quantity = 10
-        g.quantity_compromised = 0
-        self.stocks_owned.append(g)
+        self.read_json_data_from_file()
 
     def show(self) -> str:
         result = ""
@@ -204,36 +176,59 @@ class Portfolio:
         import json
 
         data = {}
-        data['people'] = []
-        data['people'].append({
-            'name': 'Scott',
-            'website': 'stackabuse.com',
-            'from': 'Nebraska'
+        data['holdings'] = []
+        data['holdings'].append({
+            'market': 'NASDAQ',
+            'ticker': 'GOOG',
+            'company': 'Google, Inc.',
+            'last_price': '1359',
+            'avg_price': '1359',
+            'quantity': '30',
+            'quantity_compromised': '0'
         })
-        data['people'].append({
-            'name': 'Larry',
-            'website': 'google.com',
-            'from': 'Michigan'
+        data['holdings'].append({
+            'market': 'NASDAQ',
+            'ticker': 'NFLX',
+            'company': 'Netflix',
+            'last_price': '301',
+            'avg_price': '262',
+            'quantity': '20',
+            'quantity_compromised': '0'
         })
-        data['people'].append({
-            'name': 'Tim',
-            'website': 'apple.com',
-            'from': 'Alabama'
+        data['holdings'].append({
+            'market': 'NASDAQ',
+            'ticker': 'FB',
+            'company': 'Facebook, Inc.',
+            'last_price': '198.8',
+            'avg_price': '210.5',
+            'quantity': '10',
+            'quantity_compromised': '0'
         })
 
-        with open('data/data.txt', 'w') as outfile:
-            json.dump(data, outfile)
+        with open(data_file_url, 'w') as outfile:
+            json.dump(data, outfile, indent=4)
 
     def read_json_data_from_file(self):
         import json
 
-        with open('data.txt') as json_file:
+        with open(data_file_url) as json_file:
             data = json.load(json_file)
-            for p in data['people']:
-                print('Name: ' + p['name'])
-                print('Website: ' + p['website'])
-                print('From: ' + p['from'])
+            for p in data['holdings']:
+                print('Market: ' + p['market'])
+                print('Ticker: ' + p['ticker'])
+                print('Company: ' + p['company'])
                 print('')
+
+                # TODO: instead of print, bind to our objects
+                holding = Holding()
+                holding.stock.ticker = p['ticker']
+                holding.stock.market = p['market']
+                holding.stock.company = p['company']
+                holding.average_price = p['avg_price']
+                holding.last_price = p['last_price']
+                holding.quantity = p['quantity']
+                holding.quantity_compromised = p['quantity_compromised']
+                self.stocks_owned.append(holding)
 
     @staticmethod
     def print_header(self):
