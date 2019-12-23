@@ -11,4 +11,6 @@ class UserProfile:
         self.name = name
         self.transport = transport
         self.age = age
+
         self.input = input
+        # TODO: recycle this class into something useful, having relevant data of the user
