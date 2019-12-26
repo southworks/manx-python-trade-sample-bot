@@ -134,7 +134,8 @@ class UserProfileDialog(ComponentDialog):
                 MessageFactory.text("We could and should use a Card here.")
             )
 
-            self.portfolio = Portfolio()
+            if not self.portfolio:
+                self.portfolio = Portfolio()
 
             await step_context.context.send_activity(
                 MessageFactory.text(self.portfolio.show())
