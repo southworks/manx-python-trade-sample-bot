@@ -1,8 +1,8 @@
 {
     "holdings": [
         {
-            "market": "NASDAQ",
             "ticker": "GOOG",
+            "market": "NASDAQ",
             "company": "Google, Inc.",
             "last_price": "1359",
             "avg_price": "1359",
@@ -10,8 +10,8 @@
             "quantity_compromised": "0"
         },
         {
-            "market": "NASDAQ",
             "ticker": "NFLX",
+            "market": "NASDAQ",
             "company": "Netflix",
             "last_price": "301",
             "avg_price": "262",
@@ -19,13 +19,58 @@
             "quantity_compromised": "0"
         },
         {
-            "market": "NASDAQ",
             "ticker": "FB",
+            "market": "NASDAQ",
             "company": "Facebook, Inc.",
             "last_price": "198.8",
             "avg_price": "210.5",
             "quantity": "15",
             "quantity_compromised": "0"
+        },
+        {
+            "ticker": "GOOG",
+            "market": "NASDAQ",
+            "company": "Google, Inc.",
+            "last_price": "1359",
+            "avg_price": "1359",
+            "quantity": "30",
+            "quantity_compromised": "0"
+        },
+        {
+            "ticker": "NFLX",
+            "market": "NASDAQ",
+            "company": "Netflix",
+            "last_price": "301",
+            "avg_price": "262",
+            "quantity": "20",
+            "quantity_compromised": "0"
+        },
+        {
+            "ticker": "FB",
+            "market": "NASDAQ",
+            "company": "Facebook, Inc.",
+            "last_price": "198.8",
+            "avg_price": "210.5",
+            "quantity": "15",
+            "quantity_compromised": "0"
+        },
+        {
+            "ticker": "MSFT",
+            "market": "NASDAQ",
+            "company": "Microsoft",
+            "last_price": 150,
+            "avg_price": 140,
+            "quantity": "11",
+            "quantity_compromised": 0
+        },
+        {
+            "ticker": "MSFT",
+            "market": "NASDAQ",
+            "company": "Microsoft",
+            "last_price": 150,
+            "avg_price": 140,
+            "quantity": "13",
+            "quantity_compromised": 0
         }
     ]
 }

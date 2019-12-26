@@ -89,6 +89,8 @@ class UserProfileDialog(ComponentDialog):
 
         self.initial_dialog_id = WaterfallDialog.__name__
 
+    portfolio: Portfolio
+
     async def options_step(
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
@@ -132,10 +134,10 @@ class UserProfileDialog(ComponentDialog):
                 MessageFactory.text("We could and should use a Card here.")
             )
 
-            portfolio = Portfolio()
+            self.portfolio = Portfolio()
 
             await step_context.context.send_activity(
-                MessageFactory.text(portfolio.show())
+                MessageFactory.text(self.portfolio.show())
             )
 
             # Here, the conversation could continue, or be terminated and reset
@@ -212,11 +214,10 @@ class UserProfileDialog(ComponentDialog):
 
         # this contains the whole collection of stocks of the user.
         # in the init method, it should populate the holdings using the data text file
-        portfolio = Portfolio()
+        self.portfolio = Portfolio()
 
-        # test write file: ok
-        # portfolio.write_json_data_to_file()
-        # portfolio.read_json_data_from_file()
+        # test read file: ok - disabled, because the init method of Portfolio() already instantiates the collection
+        # self.portfolio.read_json_data_from_file()
 
         # this represents a position taken with an investment instrument.
         # usually, there are many open at the same time.
@@ -288,8 +289,11 @@ class UserProfileDialog(ComponentDialog):
         str_time_stamp = " on " + str(operation.time_stamp) if has_time_stamp else ""
 
         # Add holding to Portfolio
-        portfolio.stocks_owned.append(holding)
+        self.portfolio.stocks_owned.append(holding)
         # -------------------------------------------------------------
+
+        # TODO: Test write the portfolio with new values
+        self.portfolio.write_json_data_to_file()
 
         operation_details = ""
         if has_quantity and amount:

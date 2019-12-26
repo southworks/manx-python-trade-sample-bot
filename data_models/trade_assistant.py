@@ -174,36 +174,24 @@ class Portfolio:
 
     def write_json_data_to_file(self):
         import json
+        # this clears the file content before writing it again
+        open(data_file_url, "w").close()
 
-        data = {}
-        data['holdings'] = []
-        data['holdings'].append({
-            'market': 'NASDAQ',
-            'ticker': 'GOOG',
-            'company': 'Google, Inc.',
-            'last_price': '1359',
-            'avg_price': '1359',
-            'quantity': '30',
-            'quantity_compromised': '0'
-        })
-        data['holdings'].append({
-            'market': 'NASDAQ',
-            'ticker': 'NFLX',
-            'company': 'Netflix',
-            'last_price': '301',
-            'avg_price': '262',
-            'quantity': '20',
-            'quantity_compromised': '0'
-        })
-        data['holdings'].append({
-            'market': 'NASDAQ',
-            'ticker': 'FB',
-            'company': 'Facebook, Inc.',
-            'last_price': '198.8',
-            'avg_price': '210.5',
-            'quantity': '10',
-            'quantity_compromised': '0'
-        })
+        data = {'holdings': []}
+
+        # TODO: Check if it is merging the holdings before writing
+        for holding in self.stocks_owned:
+            # holding.stock
+            # for each property, write
+            data['holdings'].append({
+                'ticker': holding.stock.ticker,
+                'market': holding.stock.market,
+                'company': holding.stock.company,
+                'last_price': holding.last_price,
+                'avg_price': holding.average_price,
+                'quantity': holding.quantity,
+                'quantity_compromised': holding.quantity_compromised
+            })
 
         with open(data_file_url, 'w') as outfile:
             json.dump(data, outfile, indent=4)
