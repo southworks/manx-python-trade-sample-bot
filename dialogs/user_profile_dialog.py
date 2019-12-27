@@ -280,20 +280,24 @@ class UserProfileDialog(ComponentDialog):
             print(Constants.separator)
             print("Operation type: " + self.operation.type)
             print("Amount: $ " + str(amount))
-            commission = round(amount * self.broker.commission, Constants.max_decimals)
+            self.operation.commission = round(amount * self.broker.commission, Constants.max_decimals)
             # tax, over the commission is 0.01 (10%)
-            tax = round(commission * Constants.tax, Constants.max_decimals)
-            print("Commission: $ " + str(commission))
-            print("TAX: $ " + str(tax))
+            self.operation.tax = round(self.operation.commission * Constants.tax, Constants.max_decimals)
+            print("Commission: $ " + str(self.operation.commission))
+            print("TAX: $ " + str(self.operation.tax))
             print(Constants.separator)
-            print("Total: $ " + str(amount + commission + tax))
+            print("Total: $ " + str(amount + self.operation.commission + self.operation.tax))
             print(Constants.separator)
+            self.operation.quantity = holding.quantity
+            self.operation.stock.ticker = holding.stock.ticker
+            self.operation.stock.company = holding.stock.company
+            self.operation.stock.market = holding.stock.market
 
         str_quantity = str(holding.quantity)
         str_price = "$ " + str(self.operation.price)
         str_time_stamp = " on " + str(self.operation.time_stamp) if has_time_stamp else ""
 
-        # TODO: Check if the ticker is in use. If it is, dont use append. Edit.
+        # TODO: Check if the ticker is in use.
         find_result = any(elem.stock.ticker == holding.stock.ticker for elem in self.portfolio.stocks_owned)
 
         if find_result:
@@ -353,35 +357,35 @@ class UserProfileDialog(ComponentDialog):
             title="Operation: " + operation.type,
             facts=[
                 Fact(key="Order Number", value="1234"),
-                Fact(key="Payment Method", value="VISA 5555-****"),
+                Fact(key="Payment Method", value="Cash"),
+                Fact(key="Ticker", value=operation.stock.ticker),
             ],
             items=[
                 ReceiptItem(
-                    title="Data Transfer",
+                    title="Market rights",
                     price="$38.45",
-                    quantity="368",
+                    quantity="1",
                     image=CardImage(
-                        url="https://github.com/amido/azure-vector-icons/raw/master/"
-                        "renders/traffic-manager.png"
+                        url="assets/invoice.png"
                     ),
                 ),
                 ReceiptItem(
-                    title="App Service",
-                    price="$45.00",
-                    quantity="720",
+                    title="Commission",
+                    price="$ " + str(operation.commission),
+                    quantity="1",
                     image=CardImage(
                         url="https://github.com/amido/azure-vector-icons/raw/master/"
                         "renders/cloud-service.png"
                     ),
                 ),
             ],
-            tax="$7.50",
-            total="90.95",
+            tax="$ " + str(operation.tax),
+            total="$" + str(operation.amount),
             buttons=[
                 CardAction(
                     type=ActionTypes.open_url,
                     title="More Information",
-                    value="https://azure.microsoft.com/en-us/pricing/details/bot-service/",
+                    value="https://github.com/southworks/manx-python-trade-sample-bot/",
                 )
             ],
         )
@@ -403,7 +407,7 @@ class UserProfileDialog(ComponentDialog):
             if self.operation.type == 'buy':
                 # TODO: Define the interface of the Broker API: buy
                 return_from_broker = self.broker.buy(self, self.operation)
-
+                # TODO: Verify that the operation object has ALL the info needed.
                 card = self.create_receipt_card(self, self.operation)
 
                 response = create_activity_reply(

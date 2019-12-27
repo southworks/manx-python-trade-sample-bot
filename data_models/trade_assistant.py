@@ -71,6 +71,7 @@ class Operation:
         self.time_stamp = datetime.now()
         self.is_processed = False
         self.tax = 0
+        self.commission = 0
 
 
 class BuyOperation(Operation):
