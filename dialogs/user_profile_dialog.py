@@ -267,9 +267,10 @@ class UserProfileDialog(ComponentDialog):
         if has_quantity and has_price:
             print("Quantity: " + str(holding.quantity))
             amount = int(holding.quantity) * float(self.operation.price)
+            self.operation.amount = round(amount, Constants.max_decimals)
 
         print("Stock: " + holding.to_string())
-        print("Price: $ " + self.operation.price)
+        print("Price: $ " + str(self.operation.price))
 
         if has_time_stamp:
             print("TimeStamp: " + str(self.operation.time_stamp))
@@ -356,12 +357,13 @@ class UserProfileDialog(ComponentDialog):
         card = ReceiptCard(
             title="Operation: " + operation.type,
             facts=[
-                Fact(key="Order #", value="1234"),
+                Fact(key="Order #", value="123456"),
                 Fact(key="Ticker", value=operation.stock.ticker),
             ],
             items=[
                 ReceiptItem(
                     title=operation.type + " order",
+                    subtitle=operation.stock.company,
                     price="$ " + str(operation.price),
                     quantity=str(operation.quantity),
                 ),
@@ -376,7 +378,7 @@ class UserProfileDialog(ComponentDialog):
                 ),
             ],
             tax="$ " + str(operation.tax),
-            total="$ " + str(operation.amount),
+            total="$ " + str(operation.amount + operation.commission + operation.tax),
             buttons=[
                 CardAction(
                     type=ActionTypes.open_url,

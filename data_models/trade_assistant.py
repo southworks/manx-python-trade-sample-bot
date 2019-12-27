@@ -146,6 +146,7 @@ class Broker:
         ticker = operation.stock.ticker
         amount = operation.amount
         tax = operation.tax
+        amount = operation.amount
 
         return "Broker Response: === Buy operation ok! ==="
 
