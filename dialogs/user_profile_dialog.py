@@ -356,18 +356,14 @@ class UserProfileDialog(ComponentDialog):
         card = ReceiptCard(
             title="Operation: " + operation.type,
             facts=[
-                Fact(key="Order Number", value="1234"),
-                Fact(key="Payment Method", value="Cash"),
+                Fact(key="Order #", value="1234"),
                 Fact(key="Ticker", value=operation.stock.ticker),
             ],
             items=[
                 ReceiptItem(
-                    title="Market rights",
-                    price="$38.45",
-                    quantity="1",
-                    image=CardImage(
-                        url="assets/invoice.png"
-                    ),
+                    title=operation.type + " order",
+                    price="$ " + str(operation.price),
+                    quantity=str(operation.quantity),
                 ),
                 ReceiptItem(
                     title="Commission",
@@ -380,7 +376,7 @@ class UserProfileDialog(ComponentDialog):
                 ),
             ],
             tax="$ " + str(operation.tax),
-            total="$" + str(operation.amount),
+            total="$ " + str(operation.amount),
             buttons=[
                 CardAction(
                     type=ActionTypes.open_url,

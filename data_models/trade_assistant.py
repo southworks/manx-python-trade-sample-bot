@@ -51,6 +51,7 @@ class Operation:
     sell: bool
     # TODO: replace buy, sell for type_of_operation
     quantity: int
+    price: float
     amount: float
     tax: float
     commission: float
@@ -66,6 +67,7 @@ class Operation:
         self.buy = False
         self.sell = False
         self.quantity = 0
+        self.price = 0
         self.amount = 0
         self.stock = Stock()
         self.time_stamp = datetime.now()
