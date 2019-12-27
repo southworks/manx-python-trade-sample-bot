@@ -51,6 +51,7 @@ class Operation:
     sell: bool
     # TODO: replace buy, sell for type_of_operation
     quantity: int
+    price: float
     amount: float
     tax: float
     commission: float
@@ -66,10 +67,13 @@ class Operation:
         self.buy = False
         self.sell = False
         self.quantity = 0
+        self.price = 0
         self.amount = 0
         self.stock = Stock()
         self.time_stamp = datetime.now()
         self.is_processed = False
+        self.tax = 0
+        self.commission = 0
 
 
 class BuyOperation(Operation):
@@ -133,16 +137,26 @@ class Broker:
         pass
 
     @staticmethod
-    def buy(self, stock: Stock, quantity: int, price: float):
-        """ buy stocks """
+    def buy(self, operation: Operation) -> str:
+        """ buy stocks: TODO: return an own data type, with more info """
+
         # Dummy API invocation using HTTPS.
-        pass
+        # unfold the operation parameter to verify it has all we need now.
+        quantity = operation.quantity
+        ticker = operation.stock.ticker
+        amount = operation.amount
+        tax = operation.tax
+
+        return "Broker Response: === Buy operation ok! ==="
 
     @staticmethod
-    def sell(self, holding: Holding, quantity: int, price: float):
+    def sell(self, holding: Holding, operation: Operation):
         """ sell stocks """
         # Dummy API invocation using HTTPS.
         pass
+
+
+data_file_url = "data/data.txt"
 
 
 class Portfolio:
@@ -153,37 +167,7 @@ class Portfolio:
     def __init__(self):
         """ Create a new Portfolio """
         self.stocks_owned = list()
-        # TODO: Create a parametric constructor, for fast population.
-
-        g: Holding = Holding()
-        g.stock.market = Market.NASDAQ[0]
-        g.stock.ticker = "GOOG"
-        g.stock.company = "Google, Inc."
-        g.average_price = 1210
-        g.last_price = 1359
-        g.quantity = 30
-        g.quantity_compromised = 0
-        self.stocks_owned.append(g)
-
-        g: Holding = Holding()
-        g.stock.ticker = "NFLX"
-        g.stock.market = Market.NASDAQ[0]
-        g.stock.company = "Netflix"
-        g.average_price = 262
-        g.last_price = 301
-        g.quantity = 20
-        g.quantity_compromised = 0
-        self.stocks_owned.append(g)
-
-        g: Holding = Holding()
-        g.stock.ticker = "FB"
-        g.stock.market = Market.NASDAQ[0]
-        g.stock.company = "Facebook, Inc."
-        g.average_price = 210.5
-        g.last_price = 198.80
-        g.quantity = 10
-        g.quantity_compromised = 0
-        self.stocks_owned.append(g)
+        self.read_json_data_from_file()
 
     def show(self) -> str:
         result = ""
@@ -198,6 +182,54 @@ class Portfolio:
             result += holding.to_string() + Constants.crlf
 
         return result
+
+    def merge_holdings(self):
+        """ TODO: This has to check the collection of self.stocks_owned and merge similar elements."""
+        # for holding in self.stocks_owned:
+
+    def write_json_data_to_file(self):
+        import json
+        # this clears the file content before writing it again
+        open(data_file_url, "w").close()
+
+        data = {'holdings': []}
+
+        # TODO: Check if it is merging the holdings before writing
+        for holding in self.stocks_owned:
+            data['holdings'].append({
+                'ticker': holding.stock.ticker,
+                'market': holding.stock.market,
+                'company': holding.stock.company,
+                'last_price': holding.last_price,
+                'avg_price': holding.average_price,
+                'quantity': holding.quantity,
+                'quantity_compromised': holding.quantity_compromised
+            })
+
+        with open(data_file_url, 'w') as outfile:
+            json.dump(data, outfile, indent=4)
+
+    def read_json_data_from_file(self):
+        import json
+
+        with open(data_file_url) as json_file:
+            data = json.load(json_file)
+            for p in data['holdings']:
+                print('Market: ' + p['market'])
+                print('Ticker: ' + p['ticker'])
+                print('Company: ' + p['company'])
+                print('')
+
+                # TODO: instead of print, bind to our objects
+                holding = Holding()
+                holding.stock.ticker = p['ticker']
+                holding.stock.market = p['market']
+                holding.stock.company = p['company']
+                holding.average_price = p['avg_price']
+                holding.last_price = p['last_price']
+                holding.quantity = p['quantity']
+                holding.quantity_compromised = p['quantity_compromised']
+                self.stocks_owned.append(holding)
 
     @staticmethod
     def print_header(self):
@@ -229,13 +261,13 @@ class Sets:
 
     @staticmethod
     def intersection(lst1, lst2):
+        """ get intersection of two lists """
         lst3 = [value for value in lst1 if value in lst2]
         return lst3
 
-    """ get difference of two lists """
-
     @staticmethod
     def diff(li1, li2):
+        """ get difference of two lists """
         return list(set(li1) - set(li2))
 
 
