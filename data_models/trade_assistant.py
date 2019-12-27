@@ -70,6 +70,7 @@ class Operation:
         self.stock = Stock()
         self.time_stamp = datetime.now()
         self.is_processed = False
+        self.tax = 0
 
 
 class BuyOperation(Operation):
@@ -133,13 +134,20 @@ class Broker:
         pass
 
     @staticmethod
-    def buy(self, stock: Stock, quantity: int, price: float):
-        """ buy stocks """
+    def buy(self, operation: Operation) -> str:
+        """ buy stocks: TODO: return an own data type, with more info """
+
         # Dummy API invocation using HTTPS.
-        pass
+        # unfold the operation parameter to verify it has all we need now.
+        quantity = operation.quantity
+        ticker = operation.stock.ticker
+        amount = operation.amount
+        tax = operation.tax
+
+        return "Broker Response: === Buy operation ok! ==="
 
     @staticmethod
-    def sell(self, holding: Holding, quantity: int, price: float):
+    def sell(self, holding: Holding, operation: Operation):
         """ sell stocks """
         # Dummy API invocation using HTTPS.
         pass

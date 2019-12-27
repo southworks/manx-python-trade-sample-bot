@@ -56,6 +56,8 @@ from botbuilder.schema import (
 from data_models.trade_assistant import Portfolio, Constants, Operation, Broker, Holding, BuyOperation, SellOperation, \
     Sets
 
+from helpers.activity_helper import create_activity_reply
+
 DEFAULT_CULTURE = Culture.English
 
 
@@ -90,6 +92,8 @@ class UserProfileDialog(ComponentDialog):
         self.initial_dialog_id = WaterfallDialog.__name__
 
     portfolio: Portfolio
+    broker: Broker
+    operation: Operation
 
     async def options_step(
         self, step_context: WaterfallStepContext
@@ -225,25 +229,25 @@ class UserProfileDialog(ComponentDialog):
         holding = Holding()
 
         # represents the intermediary broker
-        broker = Broker()
+        self.broker = Broker()
 
         # for current operation (buy, sell)
-        operation = Operation()
+        self.operation = Operation()
 
-        operation.buy = True if ('buy' in user_input or 'Buy' in user_input) else False
-        operation.sell = True if ('sell' in user_input or 'Sell' in user_input) else False
+        self.operation.buy = True if ('buy' in user_input or 'Buy' in user_input) else False
+        self.operation.sell = True if ('sell' in user_input or 'Sell' in user_input) else False
 
-        if operation.buy:
-            operation = BuyOperation()
-            operation.buy = True
-            operation.sell = False
-            operation.type = 'buy'
+        if self.operation.buy:
+            self.operation = BuyOperation()
+            self.operation.buy = True
+            self.operation.sell = False
+            self.operation.type = 'buy'
 
-        if operation.sell:
-            operation = SellOperation()
-            operation.buy = False
-            operation.sell = True
-            operation.type = 'sell'
+        if self.operation.sell:
+            self.operation = SellOperation()
+            self.operation.buy = False
+            self.operation.sell = True
+            self.operation.type = 'sell'
 
         # TODO: we should have a dict or similar with [ticker, company_name]
         # refactor this for other companies
@@ -254,29 +258,29 @@ class UserProfileDialog(ComponentDialog):
             holding.stock.company = "Microsoft"
 
         if has_time_stamp:
-            operation.time_stamp = list_datetime[0]
+            self.operation.time_stamp = list_datetime[0]
 
         if len(Sets.intersection(list_currency, list_number)) == 1:
-            operation.price = Sets.intersection(list_currency, list_number)[0]
+            self.operation.price = Sets.intersection(list_currency, list_number)[0]
             holding.quantity = Sets.diff(list_number, list_currency)[0]
 
         if has_quantity and has_price:
             print("Quantity: " + str(holding.quantity))
-            amount = int(holding.quantity) * float(operation.price)
+            amount = int(holding.quantity) * float(self.operation.price)
 
         print("Stock: " + holding.to_string())
-        print("Price: $ " + operation.price)
+        print("Price: $ " + self.operation.price)
 
         if has_time_stamp:
-            print("TimeStamp: " + str(operation.time_stamp))
+            print("TimeStamp: " + str(self.operation.time_stamp))
 
         if has_quantity and amount:
             print(Constants.separator)
             print("OPERATION DETAILS")
             print(Constants.separator)
-            print("Operation type: " + operation.type)
+            print("Operation type: " + self.operation.type)
             print("Amount: $ " + str(amount))
-            commission = round(amount * broker.commission, Constants.max_decimals)
+            commission = round(amount * self.broker.commission, Constants.max_decimals)
             # tax, over the commission is 0.01 (10%)
             tax = round(commission * Constants.tax, Constants.max_decimals)
             print("Commission: $ " + str(commission))
@@ -286,20 +290,25 @@ class UserProfileDialog(ComponentDialog):
             print(Constants.separator)
 
         str_quantity = str(holding.quantity)
-        str_price = "$ " + str(operation.price)
-        str_time_stamp = " on " + str(operation.time_stamp) if has_time_stamp else ""
+        str_price = "$ " + str(self.operation.price)
+        str_time_stamp = " on " + str(self.operation.time_stamp) if has_time_stamp else ""
 
-        # Add holding to Portfolio: if holding not already present!
-        # self.portfolio.stocks_owned
         # TODO: Check if the ticker is in use. If it is, dont use append. Edit.
         find_result = any(elem.stock.ticker == holding.stock.ticker for elem in self.portfolio.stocks_owned)
 
         if find_result:
             updated_holding = next((i for i in self.portfolio.stocks_owned if i.stock.ticker == holding.stock.ticker), None)
-            a = int(holding.quantity)
-            b = int(updated_holding.quantity)
+            a = int(updated_holding.quantity)
+            b = int(holding.quantity)
             # TODO: Check if is a buy or sell, the arithmetic logic
-            updated_holding.quantity = str(a + b)
+            if self.operation.type == 'buy':
+                updated_holding.quantity = str(a + b)
+                # cash should be decreased by the total cost of the operation
+            elif self.operation.type == 'sell':
+                # in fact, this should alter the compromised quantity, until the order is executed. Its ok for now.
+                updated_holding.quantity = str(a - b)
+                # also, the cash should be incremented when selling
+                # self.portfolio.cash =
         else:
             self.portfolio.stocks_owned.append(holding)
         # -------------------------------------------------------------
@@ -309,13 +318,13 @@ class UserProfileDialog(ComponentDialog):
 
         operation_details = ""
         if has_quantity and amount:
-            commission = round(amount * broker.commission, Constants.max_decimals)
+            commission = round(amount * self.broker.commission, Constants.max_decimals)
             tax = round(commission * Constants.tax, Constants.max_decimals)
 
             operation_details += Constants.separator + "\n"
             operation_details += "OPERATION DETAILS" + "\n"
             operation_details += Constants.separator + "\n"
-            operation_details += "Operation type: " + operation.type + "\n"
+            operation_details += "Operation type: " + self.operation.type + "\n"
             operation_details += "Amount: $ " + str(amount) + "\n"
             operation_details += "Commission: $ " + str(commission) + "\n"
             operation_details += "TAX: $ " + str(tax) + "\n"
@@ -328,7 +337,7 @@ class UserProfileDialog(ComponentDialog):
         )
 
         # TODO: Here, we can show how much profit comes from the sale operation.
-        query = "Do you wish to " + operation.type + " " + str_quantity + " " + holding.stock.ticker + " stocks at " + str_price + str_time_stamp + "?"
+        query = "Do you wish to " + self.operation.type + " " + str_quantity + " " + holding.stock.ticker + " stocks at " + str_price + str_time_stamp + "?"
         return await step_context.prompt(
             ConfirmPrompt.__name__,
             PromptOptions(
@@ -338,41 +347,10 @@ class UserProfileDialog(ComponentDialog):
 
         # if we don't ask for confirmation, we terminate it:
         # return await step_context.end_dialog()
-
-    async def check_is_info_ok(self, step_context: WaterfallStepContext) -> DialogTurnResult:
-        """ This step ... """
-        query = step_context.values["input"]
-
-        if step_context.result:
-            # User said "yes" so we can execute the operation.
-            await step_context.context.send_activity(
-                MessageFactory.text(f"Executing Operation.")
-            )
-
-            await step_context.context.send_activity(
-                MessageFactory.text(f"[Lie] Operation Executed. This is the details of the operation:")
-            )
-            await step_context.context.send_activity(
-                MessageFactory.text(f"[CARD WITH TRANSACTION DETAILS]")
-            )
-
-            return await step_context.end_dialog()
-
-        # User said "no"
-        # so we will have to terminate for now
-        # also we could reuse some of the previous steps.
-        await step_context.context.send_activity(
-            MessageFactory.text(f"I'm sorry I did not understand your order: '{query}'")
-        )
-        await step_context.context.send_activity(
-            MessageFactory.text(f"I am still learning, you know?")
-        )
-
-        return await step_context.end_dialog()
-
-    def create_receipt_card(self) -> Attachment:
+    @staticmethod
+    def create_receipt_card(self, operation: Operation) -> Attachment:
         card = ReceiptCard(
-            title="John Rico",
+            title="Operation: " + operation.type,
             facts=[
                 Fact(key="Order Number", value="1234"),
                 Fact(key="Payment Method", value="VISA 5555-****"),
@@ -408,6 +386,56 @@ class UserProfileDialog(ComponentDialog):
             ],
         )
         return CardFactory.receipt_card(card)
+
+    async def check_is_info_ok(self, step_context: WaterfallStepContext) -> DialogTurnResult:
+        """ This step ... """
+        query = step_context.values["input"]
+
+        if step_context.result:
+            # User said "yes" so we can execute the operation.
+            await step_context.context.send_activity(
+                MessageFactory.text(f"Executing Operation.")
+            )
+
+            return_from_broker = ""
+
+            # TODO: Here we have to at least simulate the API call to the Broker
+            if self.operation.type == 'buy':
+                # TODO: Define the interface of the Broker API: buy
+                return_from_broker = self.broker.buy(self, self.operation)
+
+                card = self.create_receipt_card(self, self.operation)
+
+                response = create_activity_reply(
+                    step_context.context.activity, "", "", [card]
+                )
+                await step_context.context.send_activity(response)
+
+            elif self.operation.type == 'sell':
+                a = 2
+                # TODO: Define the interface of the Broker API: sell
+                # self.broker.sell()
+
+            await step_context.context.send_activity(
+                MessageFactory.text(f"[Semi-Lie] Operation Executed. This is the details of the operation:")
+            )
+            await step_context.context.send_activity(
+                MessageFactory.text(return_from_broker)
+            )
+
+            return await step_context.end_dialog()
+
+        # User said "no"
+        # so we will have to terminate for now
+        # also we could reuse some of the previous steps.
+        await step_context.context.send_activity(
+            MessageFactory.text(f"I'm sorry I did not understand your order: '{query}'")
+        )
+        await step_context.context.send_activity(
+            MessageFactory.text(f"I am still learning, you know?")
+        )
+
+        return await step_context.end_dialog()
 
 
 def parse_all(user_input: str, culture: str) -> List[List[ModelResult]]:
