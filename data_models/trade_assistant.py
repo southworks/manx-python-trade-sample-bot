@@ -172,6 +172,10 @@ class Portfolio:
 
         return result
 
+    def merge_holdings(self):
+        """ TODO: This has to check the collection of self.stocks_owned and merge similar elements."""
+        # for holding in self.stocks_owned:
+
     def write_json_data_to_file(self):
         import json
         # this clears the file content before writing it again
@@ -181,8 +185,6 @@ class Portfolio:
 
         # TODO: Check if it is merging the holdings before writing
         for holding in self.stocks_owned:
-            # holding.stock
-            # for each property, write
             data['holdings'].append({
                 'ticker': holding.stock.ticker,
                 'market': holding.stock.market,

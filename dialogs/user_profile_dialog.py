@@ -289,8 +289,19 @@ class UserProfileDialog(ComponentDialog):
         str_price = "$ " + str(operation.price)
         str_time_stamp = " on " + str(operation.time_stamp) if has_time_stamp else ""
 
-        # Add holding to Portfolio
-        self.portfolio.stocks_owned.append(holding)
+        # Add holding to Portfolio: if holding not already present!
+        # self.portfolio.stocks_owned
+        # TODO: Check if the ticker is in use. If it is, dont use append. Edit.
+        find_result = any(elem.stock.ticker == holding.stock.ticker for elem in self.portfolio.stocks_owned)
+
+        if find_result:
+            updated_holding = next((i for i in self.portfolio.stocks_owned if i.stock.ticker == holding.stock.ticker), None)
+            a = int(holding.quantity)
+            b = int(updated_holding.quantity)
+            # TODO: Check if is a buy or sell, the arithmetic logic
+            updated_holding.quantity = str(a + b)
+        else:
+            self.portfolio.stocks_owned.append(holding)
         # -------------------------------------------------------------
 
         # TODO: Test write the portfolio with new values
