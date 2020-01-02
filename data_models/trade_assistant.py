@@ -5,6 +5,8 @@ from datetime import datetime
 
 from collections import deque
 
+import matplotlib.pyplot as plt
+
 
 class Market:
     """ This class contains information about the available formal markets where stock trading is enabled """
@@ -182,6 +184,8 @@ class Portfolio:
         for holding in self.stocks_owned:
             result += holding.to_string() + Constants.crlf
 
+        self.show_plot()
+
         return result
 
     def merge_holdings(self):
@@ -255,6 +259,13 @@ class Portfolio:
         print(queue.dequeue())  # 2
         print(queue.dequeue())  # 1
         return ""
+
+    def show_plot(self):
+        """ Plot test """
+        print("Plot test")
+        plt.plot([2, 4, 3, 5])
+        plt.ylabel('some numbers')
+        plt.show()
 
 
 class Sets:
