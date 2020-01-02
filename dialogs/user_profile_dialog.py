@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import matplotlib.pyplot as plt
+
 from botbuilder.dialogs import (
     ComponentDialog,
     WaterfallDialog,
@@ -91,6 +93,10 @@ class UserProfileDialog(ComponentDialog):
 
         self.initial_dialog_id = WaterfallDialog.__name__
 
+        self.portfolio = Portfolio()
+        self.broker = Broker()
+        self.operation = Operation()
+
     portfolio: Portfolio
     broker: Broker
     operation: Operation
@@ -137,9 +143,6 @@ class UserProfileDialog(ComponentDialog):
             await step_context.context.send_activity(
                 MessageFactory.text("We could and should use a Card here.")
             )
-
-            if not self.portfolio:
-                self.portfolio = Portfolio()
 
             await step_context.context.send_activity(
                 MessageFactory.text(self.portfolio.show())
@@ -352,6 +355,7 @@ class UserProfileDialog(ComponentDialog):
 
         # if we don't ask for confirmation, we terminate it:
         # return await step_context.end_dialog()
+
     @staticmethod
     def create_receipt_card(self, operation: Operation) -> Attachment:
         card = ReceiptCard(

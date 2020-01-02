@@ -1,3 +1,4 @@
+matplotlib
 botbuilder
 botbuilder-dialogs>=4.4.0.b1
 botbuilder-ai>=4.4.0.b1
