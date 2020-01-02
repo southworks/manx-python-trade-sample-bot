@@ -33,7 +33,7 @@
             "company": "Microsoft",
             "last_price": 150,
             "avg_price": 140,
-            "quantity": "745",
+            "quantity": "751",
             "quantity_compromised": 0
         }
     ]

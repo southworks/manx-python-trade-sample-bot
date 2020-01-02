@@ -56,7 +56,7 @@ from botbuilder.schema import (
 )
 
 from data_models.trade_assistant import Portfolio, Constants, Operation, Broker, Holding, BuyOperation, SellOperation, \
-    Sets
+    Sets, OperationStatus
 
 from helpers.activity_helper import create_activity_reply
 
@@ -404,18 +404,23 @@ class UserProfileDialog(ComponentDialog):
             )
 
             return_from_broker = ""
+            text_return_from_broker = ""
 
             # TODO: Here we have to at least simulate the API call to the Broker
             if self.operation.type == 'buy':
                 # TODO: Define the interface of the Broker API: buy
                 return_from_broker = self.broker.buy(self, self.operation)
-                # TODO: Verify that the operation object has ALL the info needed.
-                card = self.create_receipt_card(self, self.operation)
 
-                response = create_activity_reply(
-                    step_context.context.activity, "", "", [card]
-                )
-                await step_context.context.send_activity(response)
+                if return_from_broker.status == OperationStatus.Success:
+                    text_return_from_broker = "Operation OK!"
+
+                    # TODO: Verify that the operation object has ALL the info needed.
+                    card = self.create_receipt_card(self, self.operation)
+
+                    response = create_activity_reply(
+                        step_context.context.activity, "", "", [card]
+                    )
+                    await step_context.context.send_activity(response)
 
             elif self.operation.type == 'sell':
                 a = 2
@@ -426,7 +431,7 @@ class UserProfileDialog(ComponentDialog):
                 MessageFactory.text(f"[Semi-Lie] Operation Executed. This is the details of the operation:")
             )
             await step_context.context.send_activity(
-                MessageFactory.text(return_from_broker)
+                MessageFactory.text(text_return_from_broker)
             )
 
             return await step_context.end_dialog()

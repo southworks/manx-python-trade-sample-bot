@@ -7,6 +7,8 @@ from collections import deque
 
 import matplotlib.pyplot as plt
 
+import enum
+
 
 class Market:
     """ This class contains information about the available formal markets where stock trading is enabled """
@@ -92,6 +94,32 @@ class SellOperation(Operation):
         super().__init__()
 
 
+class OperationStatus(enum.Enum):
+    Invalid = 0
+    Pending = 1
+    InProgress = 2
+    Success = 3
+    Failure = 4
+
+
+class OperationResult:
+    # TODO: Add some significative request number
+    request_id: int
+
+    # TODO: Some other code returned by the broker when the operation is executed or processed.
+    transaction_id: int
+
+    # TODO: see a better data type for errors.
+    errors: List[str]
+    has_errors: bool
+    is_ok: bool
+    status = 0
+
+    def __init__(self):
+        self.errors: List[str] = list()
+        self.status = OperationStatus.Invalid
+
+
 class Holding:
     """ Contains details about the stocks owned by the user.
         A holding is an executed buy operation."""
@@ -139,7 +167,7 @@ class Broker:
         pass
 
     @staticmethod
-    def buy(self, operation: Operation) -> str:
+    def buy(self, operation: Operation) -> OperationResult:
         """ buy stocks: TODO: return an own data type, with more info """
 
         # Dummy API invocation using HTTPS.
@@ -150,7 +178,11 @@ class Broker:
         tax = operation.tax
         amount = operation.amount
 
-        return "Broker Response: === Buy operation ok! ==="
+        # TODO: Implement this
+        result = OperationResult()
+        result.status = OperationStatus.Success
+
+        return result
 
     @staticmethod
     def sell(self, holding: Holding, operation: Operation):
