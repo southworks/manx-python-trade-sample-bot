@@ -7,6 +7,23 @@ from collections import deque
 
 import matplotlib.pyplot as plt
 
+import enum
+
+import base64
+from io import BytesIO
+from matplotlib.figure import Figure
+
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
+# from matplotlib.finance import candlestick_ohlc
+
+import numpy as np
+import urllib
+import datetime as dt
+
+data_file_url = "data/data.txt"
+
 
 class Market:
     """ This class contains information about the available formal markets where stock trading is enabled """
@@ -92,6 +109,32 @@ class SellOperation(Operation):
         super().__init__()
 
 
+class OperationStatus(enum.Enum):
+    Invalid = 0
+    Pending = 1
+    InProgress = 2
+    Success = 3
+    Failure = 4
+
+
+class OperationResult:
+    # TODO: Add some significative request number
+    request_id: int
+
+    # TODO: Some other code returned by the broker when the operation is executed or processed.
+    transaction_id: int
+
+    # TODO: see a better data type for errors.
+    errors: List[str]
+    has_errors: bool
+    is_ok: bool
+    status = 0
+
+    def __init__(self):
+        self.errors: List[str] = list()
+        self.status = OperationStatus.Invalid
+
+
 class Holding:
     """ Contains details about the stocks owned by the user.
         A holding is an executed buy operation."""
@@ -139,9 +182,8 @@ class Broker:
         pass
 
     @staticmethod
-    def buy(self, operation: Operation) -> str:
-        """ buy stocks: TODO: return an own data type, with more info """
-
+    def buy(self, operation: Operation) -> OperationResult:
+        """ buy stocks """
         # Dummy API invocation using HTTPS.
         # unfold the operation parameter to verify it has all we need now.
         quantity = operation.quantity
@@ -150,16 +192,17 @@ class Broker:
         tax = operation.tax
         amount = operation.amount
 
-        return "Broker Response: === Buy operation ok! ==="
+        # TODO: Implement this
+        result = OperationResult()
+        result.status = OperationStatus.Success
+
+        return result
 
     @staticmethod
     def sell(self, holding: Holding, operation: Operation):
         """ sell stocks """
         # Dummy API invocation using HTTPS.
         pass
-
-
-data_file_url = "data/data.txt"
 
 
 class Portfolio:
@@ -184,9 +227,44 @@ class Portfolio:
         for holding in self.stocks_owned:
             result += holding.to_string() + Constants.crlf
 
-        self.show_plot()
+        return result
+
+    def show_plot_sync(self):
+        """ Plot test: careful, its syncronic """
+        print("Plot test")
+        plt.plot([2, 4, 3, 5])
+        plt.ylabel('some numbers')
+        plt.show()
+
+    def get_img_plot(self) -> str:
+        result = ""
+        # TODO: Remember to show how much free cash is there in the account.
+        if len(self.stocks_owned) == 0:
+            return "Portfolio Empty."
+
+        # print headers first
+        print(self.print_header(self))
+
+        for holding in self.stocks_owned:
+            result += holding.to_string() + Constants.crlf
+
+        img_url = self.get_plot_demo_img()
+        print(img_url)
+        result = img_url
 
         return result
+
+    def get_plot_demo_img(self) -> str:
+        # Generate the figure **without using pyplot**.
+        fig = Figure()
+        ax = fig.subplots()
+        ax.plot([2, 4, 3, 5])
+        # Save it to a temporary buffer.
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        # Embed the result in the html output.
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        return f"<img src='data:image/png;base64,{data}'/>"
 
     def merge_holdings(self):
         """ TODO: This has to check the collection of self.stocks_owned and merge similar elements."""
@@ -259,13 +337,6 @@ class Portfolio:
         print(queue.dequeue())  # 2
         print(queue.dequeue())  # 1
         return ""
-
-    def show_plot(self):
-        """ Plot test """
-        print("Plot test")
-        plt.plot([2, 4, 3, 5])
-        plt.ylabel('some numbers')
-        plt.show()
 
 
 class Sets:

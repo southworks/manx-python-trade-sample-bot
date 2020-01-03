@@ -6,6 +6,24 @@ from botbuilder.dialogs import Dialog
 from botbuilder.schema import ChannelAccount
 from helpers.dialog_helper import DialogHelper
 
+import os
+import urllib.parse
+import urllib.request
+import base64
+import json
+
+from botbuilder.core import ActivityHandler, MessageFactory, TurnContext, CardFactory
+from botbuilder.schema import (
+    ChannelAccount,
+    HeroCard,
+    CardAction,
+    ActivityTypes,
+    Attachment,
+    AttachmentData,
+    Activity,
+    ActionTypes,
+)
+
 
 class DialogBot(ActivityHandler):
     """
@@ -45,11 +63,17 @@ class DialogBot(ActivityHandler):
         await self.user_state.save_changes(turn_context)
 
     async def on_message_activity(self, turn_context: TurnContext):
-        await DialogHelper.run_dialog(
-            self.dialog,
-            turn_context,
-            self.conversation_state.create_property("DialogState"),
-        )
+        if (
+            turn_context.activity.attachments
+            and len(turn_context.activity.attachments) > 0
+        ):
+            await self._handle_outgoing_attachment(turn_context)
+        else:
+            await DialogHelper.run_dialog(
+                self.dialog,
+                turn_context,
+                self.conversation_state.create_property("DialogState"),
+            )
 
     async def on_members_added_activity(
         self, members_added: ChannelAccount, turn_context: TurnContext
@@ -62,3 +86,30 @@ class DialogBot(ActivityHandler):
                     + "Please type anything to get started."
                 )
                 await turn_context.send_activity(reply)
+
+    # taken from AttachmentBot
+    async def _handle_outgoing_attachment(self, turn_context: TurnContext):
+        reply = Activity(type=ActivityTypes.message)
+        # reply.text = "This is an inline attachment."
+        reply.attachments = [self.get_inline_attachment()]
+
+        await turn_context.send_activity(reply)
+
+    def get_inline_attachment(self) -> Attachment:
+        """
+        Creates an inline attachment sent from the bot to the user using a base64 string.
+        Using a base64 string to send an attachment will not work on all channels.
+        Additionally, some channels will only allow certain file types to be sent this way.
+        For example a .png file may work but a .pdf file may not on some channels.
+        Please consult the channel documentation for specifics.
+        :return: Attachment
+        """
+        file_path = os.path.join(os.getcwd(), "assets/architecture-resize.png")
+        with open(file_path, "rb") as in_file:
+            base64_image = base64.b64encode(in_file.read()).decode()
+
+        return Attachment(
+            name="architecture-resize.png",
+            content_type="image/png",
+            content_url=f"data:image/png;base64,{base64_image}",
+        )

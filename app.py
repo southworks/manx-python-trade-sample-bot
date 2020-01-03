@@ -16,7 +16,7 @@ from botbuilder.core import (
 )
 from botbuilder.schema import Activity, ActivityTypes
 
-from dialogs import UserProfileDialog
+from dialogs import TradeDialog
 from bots import DialogBot
 
 # Create the loop and Flask app
@@ -71,7 +71,7 @@ CONVERSATION_STATE = ConversationState(MEMORY)
 USER_STATE = UserState(MEMORY)
 
 # create main dialog and bot
-DIALOG = UserProfileDialog(USER_STATE)
+DIALOG = TradeDialog(USER_STATE)
 BOT = DialogBot(CONVERSATION_STATE, USER_STATE, DIALOG)
 
 
