@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import matplotlib.pyplot as plt
-
 from botbuilder.dialogs import (
     ComponentDialog,
     WaterfallDialog,
@@ -20,15 +18,12 @@ from botbuilder.dialogs.prompts import (
 from botbuilder.dialogs.choices import Choice
 from botbuilder.core import MessageFactory, UserState
 
-import json
 from typing import List
 import recognizers_suite as Recognizers
 from recognizers_suite import Culture, ModelResult
 
 
 from data_models import UserProfile
-
-import recognizers_suite
 
 from botbuilder.core import CardFactory, MessageFactory
 from botbuilder.dialogs import (
@@ -53,19 +48,24 @@ from botbuilder.schema import (
     ThumbnailUrl,
     Fact,
     ReceiptItem,
-)
+    Activity, ActivityTypes)
 
 from data_models.trade_assistant import Portfolio, Constants, Operation, Broker, Holding, BuyOperation, SellOperation, \
     Sets
 
 from helpers.activity_helper import create_activity_reply
 
+import base64
+from io import BytesIO
+from matplotlib.figure import Figure
+import os
+
 DEFAULT_CULTURE = Culture.English
 
 
-class UserProfileDialog(ComponentDialog):
+class TradeDialog(ComponentDialog):
     def __init__(self, user_state: UserState):
-        super(UserProfileDialog, self).__init__(UserProfileDialog.__name__)
+        super(TradeDialog, self).__init__(TradeDialog.__name__)
 
         self.user_profile_accessor = user_state.create_property("UserProfile")
 
@@ -84,7 +84,7 @@ class UserProfileDialog(ComponentDialog):
         self.add_dialog(TextPrompt("text_prompt_input"))
 
         self.add_dialog(
-            NumberPrompt(NumberPrompt.__name__, UserProfileDialog.age_prompt_validator)
+            NumberPrompt(NumberPrompt.__name__, TradeDialog.age_prompt_validator)
         )
         self.add_dialog(ChoicePrompt(ChoicePrompt.__name__))
         self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__))
@@ -140,13 +140,32 @@ class UserProfileDialog(ComponentDialog):
             await step_context.context.send_activity(
                 MessageFactory.text(f"Very well, this is your portfolio.")
             )
+            # await step_context.context.send_activity(
+            #     MessageFactory.text("We could and should use a Card here.")
+            # )
+
+            # TODO: Verify that the operation object has ALL the info needed.
+            card = self.create_table_style_card()
+
+            response = create_activity_reply(
+                step_context.context.activity, "", "", [card]
+            )
+            await step_context.context.send_activity(response)
+
+            img_result = self.portfolio.show()
+
+            # TODO: Replace this text for a CARD
             await step_context.context.send_activity(
-                MessageFactory.text("We could and should use a Card here.")
+               MessageFactory.text(self.portfolio.show())
             )
 
-            await step_context.context.send_activity(
-                MessageFactory.text(self.portfolio.show())
-            )
+            # TODO: Create an Activity, and add to it an attachment
+            reply = Activity(type=ActivityTypes.message)
+            reply.text = "Portfolio image."
+            # TODO: Change the picture defined in this function with the PLOT
+            reply.attachments = [self.get_plot_img()]
+
+            await step_context.context.send_activity(reply)
 
             # Here, the conversation could continue, or be terminated and reset
             return await step_context.end_dialog()
@@ -223,9 +242,6 @@ class UserProfileDialog(ComponentDialog):
         # this contains the whole collection of stocks of the user.
         # in the init method, it should populate the holdings using the data text file
         self.portfolio = Portfolio()
-
-        # test read file: ok - disabled, because the init method of Portfolio() already instantiates the collection
-        # self.portfolio.read_json_data_from_file()
 
         # this represents a position taken with an investment instrument.
         # usually, there are many open at the same time.
@@ -393,6 +409,289 @@ class UserProfileDialog(ComponentDialog):
         )
         return CardFactory.receipt_card(card)
 
+    # I can create a method for returning a ready to use AdaptiveCard, for Table Style data.
+    def create_table_style_card(self) -> Attachment:
+        # parse through the list and show every element in a row
+        # return CardFactory.adaptive_card(ADAPTIVE_CARD_CONTENT)
+        ADAPTIVE_CARD_CONTENT = {
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "version": "1.0",
+            "type": "AdaptiveCard",
+            "speak": "Your flight is confirmed for you and 3 other passengers from San Francisco to Amsterdam on Friday, October 10 8:30 AM",
+            "body": [
+                {
+                    "type": "TextBlock",
+                    "text": "Passengers",
+                    "weight": "bolder",
+                    "isSubtle": False,
+                },
+                {"type": "TextBlock", "text": "Sarah Hum", "separator": True},
+                {"type": "TextBlock", "text": "Jeremy Goldberg", "spacing": "none"},
+                {"type": "TextBlock", "text": "Evan Litvak", "spacing": "none"},
+                {
+                    "type": "TextBlock",
+                    "text": "2 Stops",
+                    "weight": "bolder",
+                    "spacing": "medium",
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "Fri, October 10 8:30 AM",
+                    "weight": "bolder",
+                    "spacing": "none",
+                },
+                {
+                    "type": "ColumnSet",
+                    "separator": True,
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "width": 1,
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "San Francisco",
+                                    "isSubtle": True,
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "size": "extraLarge",
+                                    "color": "accent",
+                                    "text": "SFO",
+                                    "spacing": "none",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "Column",
+                            "width": "auto",
+                            "items": [
+                                {"type": "TextBlock", "text": " "},
+                                {
+                                    "type": "Image",
+                                    "url": "http://messagecardplayground.azurewebsites.net/assets/airplane.png",
+                                    "size": "small",
+                                    "spacing": "none",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "Column",
+                            "width": 1,
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "horizontalAlignment": "right",
+                                    "text": "Amsterdam",
+                                    "isSubtle": True,
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "horizontalAlignment": "right",
+                                    "size": "extraLarge",
+                                    "color": "accent",
+                                    "text": "AMS",
+                                    "spacing": "none",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "Non-Stop",
+                    "weight": "bolder",
+                    "spacing": "medium",
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "Fri, October 18 9:50 PM",
+                    "weight": "bolder",
+                    "spacing": "none",
+                },
+                {
+                    "type": "ColumnSet",
+                    "separator": True,
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "width": 1,
+                            "items": [
+                                {"type": "TextBlock", "text": "Amsterdam", "isSubtle": True},
+                                {
+                                    "type": "TextBlock",
+                                    "size": "extraLarge",
+                                    "color": "accent",
+                                    "text": "AMS",
+                                    "spacing": "none",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "Column",
+                            "width": "auto",
+                            "items": [
+                                {"type": "TextBlock", "text": " "},
+                                {
+                                    "type": "Image",
+                                    "url": "http://messagecardplayground.azurewebsites.net/assets/airplane.png",
+                                    "size": "small",
+                                    "spacing": "none",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "Column",
+                            "width": 1,
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "horizontalAlignment": "right",
+                                    "text": "San Francisco",
+                                    "isSubtle": True,
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "horizontalAlignment": "right",
+                                    "size": "extraLarge",
+                                    "color": "accent",
+                                    "text": "SFO",
+                                    "spacing": "none",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    "type": "ColumnSet",
+                    "spacing": "medium",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "width": "1",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "Total",
+                                    "size": "medium",
+                                    "isSubtle": True,
+                                }
+                            ],
+                        },
+                        {
+                            "type": "Column",
+                            "width": 1,
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "horizontalAlignment": "right",
+                                    "text": "$4,032.54",
+                                    "size": "medium",
+                                    "weight": "bolder",
+                                }
+                            ],
+                        },
+                    ],
+                },
+            ],
+        }
+
+        PROTYPE_CARD = {
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "body": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "bolder",
+                                    "text": "Asset"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "Apple"
+                                }, {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "Kiwi"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "bolder",
+                                    "text": "Quantity"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "Fruit"
+                                }, {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "Fruit"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "bolder",
+                                    "text": "Variation"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "2"
+                                }, {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "1"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "weight": "bolder",
+                                    "text": "Price"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "2"
+                                }, {
+                                    "type": "TextBlock",
+                                    "separator": True,
+                                    "text": "1"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        card = ADAPTIVE_CARD_CONTENT
+        card = PROTYPE_CARD
+
+        return Attachment(
+            content_type=CardFactory.content_types.adaptive_card, content=card
+        )
+
     async def check_is_info_ok(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         """ This step ... """
         query = step_context.values["input"]
@@ -442,6 +741,44 @@ class UserProfileDialog(ComponentDialog):
         )
 
         return await step_context.end_dialog()
+
+    def get_inline_attachment(self) -> Attachment:
+        """
+        Creates an inline attachment sent from the bot to the user using a base64 string.
+        Using a base64 string to send an attachment will not work on all channels.
+        Additionally, some channels will only allow certain file types to be sent this way.
+        For example a .png file may work but a .pdf file may not on some channels.
+        Please consult the channel documentation for specifics.
+        :return: Attachment
+        """
+        file_path = os.path.join(os.getcwd(), "assets/architecture-resize.png")
+        with open(file_path, "rb") as in_file:
+            base64_image = base64.b64encode(in_file.read()).decode()
+
+        return Attachment(
+            name="architecture-resize.png",
+            content_type="image/png",
+            content_url=f"data:image/png;base64,{base64_image}",
+        )
+
+    def get_plot_img(self) -> Attachment:
+        # Generate the figure **without using pyplot**.
+        fig = Figure()
+        ax = fig.subplots()
+        ax.plot([2, 4, 3, 5])
+        # Save it to a temporary buffer.
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        # Embed the result in the html output.
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        # original
+        # return f"<img src='data:image/png;base64,{data}'/>"
+        # return f"data:image/png;base64,{data}"
+        return Attachment(
+            name="plot.png",
+            content_type="image/png",
+            content_url=f"data:image/png;base64,{data}"
+        )
 
 
 def parse_all(user_input: str, culture: str) -> List[List[ModelResult]]:
