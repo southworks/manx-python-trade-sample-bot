@@ -159,15 +159,19 @@ class TradeDialog(ComponentDialog):
                MessageFactory.text(self.portfolio.show())
             )
 
-            # TODO: Create an Activity, and add to it an attachment
-            reply = Activity(type=ActivityTypes.message)
-            reply.text = "Portfolio image."
-            # TODO: Change the picture defined in this function with the PLOT
-            reply.attachments = [self.get_plot_img()]
+            # TODO: review if this can be deleted and dependant methods too
+            # reply = Activity(type=ActivityTypes.message)
+            # reply.text = "Portfolio image."
+            # reply.attachments = [self.get_plot_img()]
+            # await step_context.context.send_activity(reply)
 
-            await step_context.context.send_activity(reply)
+            # TODO: Portfolio distribution (cake)
+            reply_cake = Activity(type=ActivityTypes.message)
+            reply_cake.text = "Portfolio Distribution."
+            reply_cake.attachments = [self.get_cake_img()]
+            await step_context.context.send_activity(reply_cake)
 
-            # Here, the conversation could continue, or be terminated and reset
+            # Here, the conversation can continue, or be terminated and reset
             return await step_context.end_dialog()
 
         elif step_context.result.value == 'Trade':
@@ -368,9 +372,6 @@ class TradeDialog(ComponentDialog):
                 prompt=MessageFactory.text(query)
             ),
         )
-
-        # if we don't ask for confirmation, we terminate it:
-        # return await step_context.end_dialog()
 
     @staticmethod
     def create_receipt_card(self, operation: Operation) -> Attachment:
@@ -596,7 +597,7 @@ class TradeDialog(ComponentDialog):
             ],
         }
 
-        PROTYPE_CARD = {
+        PROTOTYPE_CARD_REAL = {
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
             "version": "1.0",
@@ -615,11 +616,22 @@ class TradeDialog(ComponentDialog):
                                 {
                                     "type": "TextBlock",
                                     "separator": True,
-                                    "text": "Apple"
-                                }, {
+                                    "text": "GOOG"
+                                },
+                                {
                                     "type": "TextBlock",
-                                    "separator": True,
-                                    "text": "Kiwi"
+                                    "separator": False,
+                                    "text": "NFLX"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "FB"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "MSFT"
                                 }
                             ]
                         },
@@ -634,11 +646,22 @@ class TradeDialog(ComponentDialog):
                                 {
                                     "type": "TextBlock",
                                     "separator": True,
-                                    "text": "Fruit"
-                                }, {
+                                    "text": "30"
+                                },
+                                {
                                     "type": "TextBlock",
-                                    "separator": True,
-                                    "text": "Fruit"
+                                    "separator": False,
+                                    "text": "30"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "15"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "745"
                                 }
                             ]
                         },
@@ -653,11 +676,22 @@ class TradeDialog(ComponentDialog):
                                 {
                                     "type": "TextBlock",
                                     "separator": True,
-                                    "text": "2"
-                                }, {
+                                    "text": "-0.95 %"
+                                },
+                                {
                                     "type": "TextBlock",
-                                    "separator": True,
-                                    "text": "1"
+                                    "separator": False,
+                                    "text": "0.21 %"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "1.35 %"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "2.2 %"
                                 }
                             ]
                         },
@@ -672,11 +706,22 @@ class TradeDialog(ComponentDialog):
                                 {
                                     "type": "TextBlock",
                                     "separator": True,
-                                    "text": "2"
-                                }, {
+                                    "text": "$ 1359"
+                                },
+                                {
                                     "type": "TextBlock",
-                                    "separator": True,
-                                    "text": "1"
+                                    "separator": False,
+                                    "text": "$ 262"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "$ 210.5"
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "separator": False,
+                                    "text": "$ 140"
                                 }
                             ]
                         }
@@ -686,7 +731,7 @@ class TradeDialog(ComponentDialog):
         }
 
         card = ADAPTIVE_CARD_CONTENT
-        card = PROTYPE_CARD
+        card = PROTOTYPE_CARD_REAL
 
         return Attachment(
             content_type=CardFactory.content_types.adaptive_card, content=card
@@ -780,6 +825,39 @@ class TradeDialog(ComponentDialog):
             content_url=f"data:image/png;base64,{data}"
         )
 
+    def get_draw_cake(self) -> str:
+        img_url = self.get_cake()
+        print(img_url)
+        result = img_url
+
+        return result
+
+    def get_cake_img(self) -> Attachment:
+        # Generate the figure **without using pyplot**.
+        fig = Figure()
+
+        # Pie chart, where the slices will be ordered and plotted counter-clockwise:
+        # TODO: Add real stocks
+        labels = 'Stock1', 'Stock2', 'Stock3', 'Stock4'
+        sizes = [15, 30, 45, 10]
+        explode = (0, 0.05, 0, 0)  # only "explode" the 2nd slice (i.e. 'Hogs')
+
+        ax1 = fig.subplots()
+        ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
+                shadow=False, startangle=90)
+        ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+        # Save it to a temporary buffer.
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        # Embed the result in the html output.
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+
+        return Attachment(
+            name="Portfolio.png",
+            content_type="image/png",
+            content_url=f"data:image/png;base64,{data}"
+        )
 
 def parse_all(user_input: str, culture: str) -> List[List[ModelResult]]:
     return [
