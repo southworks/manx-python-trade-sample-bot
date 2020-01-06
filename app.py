@@ -17,7 +17,7 @@ from botbuilder.core import (
 from botbuilder.schema import Activity, ActivityTypes
 
 from dialogs import TradeDialog
-from bots import DialogBot
+from bots import TradeBot
 
 # Create the loop and Flask app
 LOOP = asyncio.get_event_loop()
@@ -72,7 +72,7 @@ USER_STATE = UserState(MEMORY)
 
 # create main dialog and bot
 DIALOG = TradeDialog(USER_STATE)
-BOT = DialogBot(CONVERSATION_STATE, USER_STATE, DIALOG)
+BOT = TradeBot(CONVERSATION_STATE, USER_STATE, DIALOG)
 
 
 # Listen for incoming requests on /api/messages.
