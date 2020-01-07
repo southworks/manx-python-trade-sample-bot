@@ -25,7 +25,7 @@ from botbuilder.schema import (
 )
 
 
-class DialogBot(ActivityHandler):
+class TradeBot(ActivityHandler):
     """
     This Bot implementation can run any type of Dialog. The use of type parameterization is to allows multiple
     different bots to be run at different endpoints within the same project. This can be achieved by defining distinct
